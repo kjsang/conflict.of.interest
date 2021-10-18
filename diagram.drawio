@@ -1,0 +1,62 @@
+<mxfile host="app.diagrams.net" modified="2021-10-17T19:45:57.443Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36" etag="5XTk8umi45FALaBZ-Bsi" version="15.5.2" type="github">
+  <diagram id="prtHgNgQTEPvFCAcTncT" name="Page-1">
+    <mxGraphModel dx="736" dy="958" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-11" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="120" y="140" width="600" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="JQjXyXabLIkF8tQIsXKU-1" target="JQjXyXabLIkF8tQIsXKU-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="320.0000000000002" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="310" y="210" />
+              <mxPoint x="310" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-1" value="문제의 흐름" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="180" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-2" value="정치의 흐름" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-3" value="대안의 흐름" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="400" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-4" value="정책의 창" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="354" y="240" width="120" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-5" value="정 책 결 정" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F0F0F0;" vertex="1" parent="1">
+          <mxGeometry x="550" y="240" width="120" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-6" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="JQjXyXabLIkF8tQIsXKU-2" target="JQjXyXabLIkF8tQIsXKU-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="330" y="360" as="sourcePoint" />
+            <mxPoint x="380" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-7" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="JQjXyXabLIkF8tQIsXKU-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="304" y="370" as="sourcePoint" />
+            <mxPoint x="354" y="320" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="310" y="430" />
+              <mxPoint x="310" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-9" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="JQjXyXabLIkF8tQIsXKU-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="474" y="320" as="sourcePoint" />
+            <mxPoint x="524" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JQjXyXabLIkF8tQIsXKU-10" value="정 책&amp;nbsp; 선 도 가" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="480" width="390" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
