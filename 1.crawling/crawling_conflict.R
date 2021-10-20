@@ -19,11 +19,4 @@ bigkinds %>%
   mutate(press = press %>% as.factor()) %>% 
   select(id, date, press, title, keyword, url) -> base # 언론사를 펙터로 변경
 base %>%
-  filter(press == "중앙일보") %>%
-  select(url) %>% 
-  mutate(text = base$url %>% 
-           read_html() %>% 
-           html_element("div.article_body") %>%
-           html_text2() %>% 
-           as_tibble()
-         )
+  count(press)
