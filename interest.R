@@ -48,6 +48,11 @@ data_prep_ver2 %>%
   filter(title %>% str_detect("이해충돌|이해관계|공무원|청탁|공직|뇌물|부패|비리|공정|LH|특권|관피아")) -> data_prep_ver3 # 584 건
 data_prep_ver3 %>% write_excel_csv("data_prep_ver3.csv") # 중간 저장
 
+data_prep_ver2 %>% 
+  filter(!title %>% str_detect("북한|중국|해외|북핵|외교|국제")) %>% # 1,742 건
+  filter(!title %>% str_detect("수상|회고록|In&Out|왜냐면")) %>% # 1,731 건
+  filter(title %>% str_detect("김영란")) %>% 
+  write_excel_csv("data_prep_kim.csv")
 
 # 2.3. 데이터 정제: 기사제목 기준 필터링 (내용분석) ---------------------
 
