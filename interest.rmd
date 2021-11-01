@@ -1,0 +1,44 @@
+---
+title: "interest"
+author: "J.S.Kim"
+date: "10/29/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 데이터를 보여주고 싶어요
+
+이 문서는 제가 보여주고자 하는 데이터를 정리해둔 것입니다. 논문에서 활용할 것입니다.  
+
+### 패키지 설치
+
+패키지 설치를 위해 `pacman` 패키지를 설치한 후 `pacman::p_load()`를 통해 다수의 패키지를 모두 적재합니다. 이 함수는 설치가 안 된 패키지가 있을 경우 자동으로 설치해줍니다.
+
+```{r interest, eval=TRUE, paged.print=TRUE}
+if (!require("pacman")) (install.packages("pacman"))
+pacman::p_load(
+  tidyverse, magrittr,
+  tidytext,
+  KoNLP, 
+  lubridate, scales, gridExtra,
+  tidylo, rvest,
+  tm, furrr, topicmodels,
+  tinytex
+)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
