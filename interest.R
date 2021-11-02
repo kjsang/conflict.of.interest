@@ -96,6 +96,8 @@ data_prep_ver5 %>% write_excel_csv("data_prep_ver5.csv")
 
 # 3. 탐색적 분석 -------------------------------------------
 
+read_csv("data_prep_ver5.csv") -> data_prep_ver5
+
 par(family = "AppleGothic") # 시각화를 위한 설정 1: 기본 글꼴 지정
 theme_set(theme_gray(base_family = 'AppleGothic')) # 시각화를 위한 설정 2: plot용 글꼴 지정
 
@@ -104,20 +106,6 @@ theme_set(theme_gray(base_family = 'AppleGothic')) # 시각화를 위한 설정 
 data_prep_ver5 %>% # 544 건
   count(press) %>% 
   arrange(desc(n))
-# # A tibble: 11 x 2
-#    press        n
-#    <chr>    <int>
-#  1 서울신문    97
-#  2 세계일보    92
-#  3 한겨레      62
-#  4 문화일보    60
-#  5 동아일보    57
-#  6 한국일보    55
-#  7 경향신문    53
-#  8 국민일보    52
-#  9 조선일보     7
-# 10 내일신문     5
-# 11 중앙일보     4
 
 
 # 3.2. 날짜별 기사 수: 월별 ---------------------------------------
@@ -153,8 +141,8 @@ data_prep_ver6 %>%
   geom_line(alpha = 0.8, color = "darkgreen") +
   ylim(0, 150) +
   theme_minimal() +
-  ggplot2::annotate("text", label = "2015-1 (n = 38)", x = as.Date("2015-01-01"), y = 48) +
-  ggplot2::annotate("text", label = "2016-3 (n = 39)", x = as.Date("2016-07-01"), y = 49) +
+  ggplot2::annotate("text", label = "2015-1 (n = 38)", x = as.Date("2015-01-01"), y = 45) +
+  ggplot2::annotate("text", label = "2016-3 (n = 39)", x = as.Date("2016-07-01"), y = 52) +
   ggplot2::annotate("text", label = "2019-1 (n = 32)", x = as.Date("2019-01-01"), y = 40) +
   ggplot2::annotate("text", label = "2021-1 (n = 109)", x = as.Date("2021-01-01"), y = 120)
 
@@ -162,9 +150,6 @@ data_prep_ver6 %>%
 # 4. 토크나이징 --------------------------------------------
 
 # 4.1. 토크나이징 전 전처리 ------------------------------------
-data_prep_ver6 %>% 
-  filter(content %>% str_detect("토지주택공사"))
-
 
 data_prep_ver6 %>% 
   mutate(
@@ -180,6 +165,9 @@ data_prep_ver6 %>%
       str_replace_all("부정 청탁|부정청탁|부정한 청탁", "부정청탁") %>% 
       str_replace_all("국민 신문고|국민신문고", "국민신문고") %>% 
       str_replace_all("입법 취지|입법취지", "입법취지") %>% 
+      str_replace_all("공공 분야|공공분야", "공공분야") %>% 
+      str_replace_all("전수 조사|전수조사", "전수조사") %>% 
+      str_replace_all("소급 적용|소급적용", "소급적용") %>% 
       str_replace_all("미공개 정보|미공개정보", "미공개정보") %>% 
       str_replace_all("퇴직 공무원|퇴직공무원", "퇴직공무원") %>% 
       str_replace_all("제3자|제삼자", "제삼자") %>% 
@@ -188,14 +176,12 @@ data_prep_ver6 %>%
       str_replace_all("한국토지주택공사\\(lh\\)|한국토지주택공사\\(LH\\)|한국토지주택공사|LH|LH공사|LH 공사|토지주택공사|엘에이치", "한국토지주택공사") %>% 
       str_replace_all("직무 관련성|직무관련성", "직무관련성") %>% 
       str_replace_all("[^가-힣 ]", " ") # 한글만 빼고 다 지웠다
-      
   ) -> data_prep_ver6
 
 # 4.2. 사용자 사전 탑재 --------------------------------------
-
 user_dic <- data.frame(
-  term = c('이해충돌방지법안','이해충돌방지법', "김영란법", "공직자윤리법", 
-           "김영란", "국민권익위원장", "권익위", "권익위원장", "귄익위장", "행정심판위원회", "참여연대", "법제처", "부패영향평가", "국제투명성기구",
+  term = c('이해충돌방지법안','이해충돌방지법', "김영란법", "공직자윤리법", "이해충돌", "전수조사", "공공분야", "소급적용", "경제부총리", "사회부총리",
+           "김영란", "국민권익위원회", "국민권익위원장", "행정심판위원회", "참여연대", "법제처", "부패영향평가", "국제투명성기구",
            "하태경", "이명박", "박근혜", "문재인", "이성보", "손혜원", "전현희", "이상민", "정홍원", "윤상현", "김한길", "직무관련성",
            "감사원", "청와대", "행정안전부", "법무부", "국무총리", "국무위원",
            '부정부패','부패방지', "명문화", "직권남용", "부패인식지수",
@@ -208,25 +194,40 @@ user_dic <- data.frame(
   tag ='ncn')
 buildDictionary(ext_dic = 'NIAdic', user_dic = user_dic)
 
+# 4.3. 토크나이징 ------------------------------------------
+
 data_prep_ver6 %>% 
   unnest_tokens(input = content,
                 output = words,
                 token = extractNoun,
                 drop = F) %>% 
   select(-content) -> data_word
+data_word %>%  write_excel_csv("data_word.csv") # 중간저장.. 개빡친다!
 
-data_word %>% 
+
+# 4.4. 사후 전처리 -----------------------------------------
+
+data_word %>% # 106,724 단어 추출
   mutate(words = words %>% 
-           str_replace_all("땐", "") %>% 
-           str_replace_all("하는", "") %>% 
-           str_replace_all("으로부터|부터|들로부터|로부터|없어|높아|박은정|하지|하다시피|하고|우리도|하면|하기로|하러|하거나|하며|에서도|에서|에서도|에서는|하에서|에서만|에서였다|였던|였|였다는|였지만|했지만|했다|했다던가|했|했느냐가|했다지만|했는지를|했는지|했다고|했고|자는|하라고|하더라도|하라는|이라는|를|된다지만|않기로", "") %>% 
-           str_replace_all("규정하", "규정") %>%
-           str_replace_all("처벌조항", "처벌조항")) %>% 
-  
-  filter(words %>% str_length() >= 2) -> data_word_prep1
-
+           str_replace_all("땐|하는|으로부터|부터|들로부터|로부터|없어|높아|박은정|하지|하다시피|하고|우리도|하면|하기로|하러|하거나|하며|에서도|에서|에서도|에서는|하에서|에서만|에서였다|였던|였|였다는|였지만|했지만|했다|했다던가|했|했느냐가|했다지만|했는지를|했는지|했다고|했고|자는|하라고|하더라도|하라는|이라는|를|된다지만|않기로|안하다|하기|하자|되기|되길|만큼|만여|내놨다|않았다|됐다|으로|스스로|는|에|경우|들이|만원|제외|이후|생각|당시|제외|가지|가운데|하나|개월|지난달|산관", "") %>% # 불용어 제거
+           str_replace_all("규정하", "규정") %>% 
+           str_replace_all("등처벌조항|처벌조항도", "처벌조항") %>% 
+           str_replace_all("보장하", "보장") %>% 
+           str_replace_all("인식하", "인식") %>% 
+           str_replace_all("투자하", "투자") %>% 
+           str_replace_all("한목소리로", "한목소리") %>% 
+           str_replace_all("한국토지주택공사와", "한국토지주택공사")
+         ) -> data_word_prep1
 data_word_prep1 %>% 
-  count(words) %>% 
-  arrange(desc(n)) %>% 
-  as.data.frame() %>% 
-  filter(words %>% str_detect("처벌"))
+  anti_join(data_word_prep1 %>% 
+              count(words) %>% 
+              filter(!n >= 5) %>% # 빈도수 5 이상의 단어만 추출
+              select(words),
+            by = "words") %>% # 96,942 단어
+  filter(words %>% str_length() >= 2) -> data_word_prep2 # 최종 70,050 단어
+data_word_prep2 %>% write_excel_csv("data_final.csv")
+
+
+# 5. 분석 -----------------------------------------------
+read_csv("data_final.csv") -> data_final
+data_final
