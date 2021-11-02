@@ -126,13 +126,13 @@ data_prep_ver6 %>%
   ggplot(aes(x = quarterly, y = n)) +
   geom_rect( 
             aes(xmin = as.Date("2011-01-01", "%Y-%m-%d"), 
-                xmax = as.Date("2015-07-01",  "%Y-%m-%d"),
+                xmax = as.Date("2015-04-01",  "%Y-%m-%d"),
                 ymin = -Inf, 
                 ymax = Inf),
             fill = "lightgray", 
             alpha = 0.3) +
     geom_rect( 
-            aes(xmin = as.Date("2015-07-01", "%Y-%m-%d"), 
+            aes(xmin = as.Date("2015-04-01", "%Y-%m-%d"), 
                 xmax = as.Date("2021-07-01",  "%Y-%m-%d"),
                 ymin = -Inf, 
                 ymax = Inf),
@@ -229,5 +229,102 @@ data_word_prep2 %>% write_excel_csv("data_final.csv")
 
 
 # 5. 분석 -----------------------------------------------
+
+# 5.0.1. 데이터 불러오기 -------------------------------------
+
 read_csv("data_final.csv") -> data_final
-data_final
+
+# 5.0.2. 태깅: 김영란법(first)과 이해충돌방지법(second) -------------
+
+data_final %>% 
+  mutate(
+    period = ifelse(id < 1228, "first", "second")
+  ) -> data_final
+data_final %>% count(period)
+
+# 5.0.3. 단어의 빈도수 추이 살펴보기 ------------------------------
+
+data_final %>% 
+  count(quarterly) %>%
+  ggplot(aes(x = quarterly, y = n)) +
+  geom_line(alpha = 0.8, color = "darkgreen") # 단어 추이도 나쁘지 않다!
+
+# 5.1. 법안 통과 관련 빈도분석 ----------------------------------
+
+data_final %>% # 법안 통과 관련
+  filter(words %in% c("입법", "법안", "통과")) %>% 
+  count(words)
+
+data_final %>% # 법안 통과 관련
+  filter(words %in% c("입법", "법안", "통과")) %>%
+  filter(period == "second") %>% 
+  count(quarterly) %>%
+  ggplot(aes(x = quarterly, y = n)) +
+  geom_rect(
+    aes(
+      xmin = as.Date("2011-01-01", "%Y-%m-%d"),
+      xmax = as.Date("2015-04-01",  "%Y-%m-%d"),
+      ymin = -Inf,
+      ymax = Inf
+    ),
+    fill = "lightgray",
+    alpha = 0.3
+  ) +
+  geom_rect(
+    aes(
+      xmin = as.Date("2015-04-01", "%Y-%m-%d"),
+      xmax = as.Date("2021-07-01",  "%Y-%m-%d"),
+      ymin = -Inf,
+      ymax = Inf
+    ),
+    fill = "gray",
+    alpha = 0.3
+  ) +
+  geom_line(alpha = 0.8, color = "darkgreen") +
+  ylim(0, 250) +
+  theme_minimal()
+
+
+# 5.2. 빈도 및 가중로그승산비 ----------------------------------------
+
+# 5.2.1. tf-idf 계산 -------------------------------------------
+
+data_final %>% 
+  count(period, words, sort = T) %>% 
+  bind_tf_idf(words, period, n) -> data_tf_idf
+
+# 5.2.2. 가중로그승산비 계산 -----------------------------------
+
+data_tf_idf %>% 
+  bind_log_odds(set = period, 
+                feature = words, 
+                n = n) %>%
+  rename(log_odds = "log_odds_weighted") -> data_tidylo
+
+
+# 5.2.3. 단어 중심으로 데이터 통합: 김영란법 시기 -------------------------------
+
+data_tidylo %>% 
+  filter(period == "first") %>% 
+  group_by(words) %>%
+  summarise(
+    n = sum(n, na.rm = TRUE),
+    tf_idf = sum(tf_idf, na.rm = TRUE),
+    log_odds = sum(log_odds, na.rm = TRUE)
+  ) %>%
+  arrange(desc(n)) %>%
+  ungroup() -> data_final_first
+
+
+# 5.2.4. 단어 중심으로 데이터 통합: 이해충돌방지법 시기 ------------------
+
+data_tidylo %>% 
+  filter(period == "second") %>% 
+  group_by(words) %>%
+  summarise(
+    n = sum(n, na.rm = TRUE),
+    tf_idf = sum(tf_idf, na.rm = TRUE),
+    log_odds = sum(log_odds, na.rm = TRUE)
+  ) %>%
+  arrange(desc(n)) %>%
+  ungroup() -> data_final_second
