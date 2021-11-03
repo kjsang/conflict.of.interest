@@ -5,7 +5,7 @@ pacman::p_load(
   tidyverse, magrittr,
   tidytext, tidyr,
   KoNLP, 
-  lubridate, scales, gridExtra,
+  lubridate, scales, 
   tidylo, rvest,
   tm, furrr, topicmodels,
   ggpmisc, # 시계열 시각화
