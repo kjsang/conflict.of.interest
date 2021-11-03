@@ -3,12 +3,13 @@
 if (!require("pacman")) (install.packages("pacman"))
 pacman::p_load(
   tidyverse, magrittr,
-  tidytext,
+  tidytext, tidyr,
   KoNLP, 
   lubridate, scales, gridExtra,
   tidylo, rvest,
   tm, furrr, topicmodels,
-  ggpmisc # 시계열 시각화
+  ggpmisc, # 시계열 시각화
+  ggraph, widyr, tidygraph
 )
 
 RStudio.Version() # R Studio 버전 확인
@@ -98,6 +99,9 @@ data_prep_ver5 %>% write_excel_csv("data_prep_ver5.csv")
 
 read_csv("data_prep_ver5.csv") -> data_prep_ver5
 
+data_prep_ver5 %>% 
+  arrange(desc(id))
+
 par(family = "AppleGothic") # 시각화를 위한 설정 1: 기본 글꼴 지정
 theme_set(theme_gray(base_family = 'AppleGothic')) # 시각화를 위한 설정 2: plot용 글꼴 지정
 
@@ -170,6 +174,10 @@ data_prep_ver6 %>%
       str_replace_all("소급 적용|소급적용", "소급적용") %>% 
       str_replace_all("미공개 정보|미공개정보", "미공개정보") %>% 
       str_replace_all("퇴직 공무원|퇴직공무원", "퇴직공무원") %>% 
+      str_replace_all("법사위", "법제사법위원회") %>% 
+      str_replace_all("법안소위|법안심사 소위|법안 심사 소위|법안심사소위", "법안심사소위") %>% 
+      str_replace_all("정무 위원회|정무위|정무위원회", "정무위원회") %>% 
+      str_replace_all("국토교통위|국토교통위원회", "국토교통위원회") %>% 
       str_replace_all("제3자|제삼자", "제삼자") %>% 
       str_replace_all("인사 청문회|인사청문회", "인사청문회") %>% 
       str_replace_all("사익 추구|사익추구", "사익추구") %>% 
@@ -178,15 +186,47 @@ data_prep_ver6 %>%
       str_replace_all("[^가-힣 ]", " ") # 한글만 빼고 다 지웠다
   ) -> data_prep_ver6
 
-# 4.2. 사용자 사전 탑재 --------------------------------------
+# 4.2. 사용자 사전 --------------------------------------
+
+
+# 4.2.1. 빅카인즈 참고 --------------------------------------
+
+readxl::read_excel("bigkinds.xlsx") -> bigkinds
+bigkinds %>% 
+  select(`인물`, `기관`) %>% 
+  rename(person = `인물`,
+         inst = `기관`) -> bigkinds_prep 
+
+bigkinds_prep %>% 
+  select(person) %>% 
+  unnest_tokens(word, person, token = stringr::str_split, pattern = ",") %>% 
+  count(word) %>% 
+  arrange(desc(n)) %>% 
+  filter(str_length(word) >= 3) %>% 
+  filter(n >= 30) %>% 
+  as.data.frame()
+
+bigkinds_prep %>% 
+  select(inst) %>% 
+  unnest_tokens(word, inst, token = stringr::str_split, pattern = ",") %>% 
+  count(word) %>% 
+  arrange(desc(n)) %>% 
+  filter(str_length(word) >= 3) %>% 
+  filter(n >= 30) %>% 
+  as.data.frame()
+
+
+
+# 4.2.2. 사용자 사전 탑재 ------------------------------------
+
 user_dic <- data.frame(
   term = c('이해충돌방지법안','이해충돌방지법', "김영란법", "공직자윤리법", "이해충돌", "전수조사", "공공분야", "소급적용", "경제부총리", "사회부총리",
            "김영란", "국민권익위원회", "국민권익위원장", "행정심판위원회", "참여연대", "법제처", "부패영향평가", "국제투명성기구",
-           "하태경", "이명박", "박근혜", "문재인", "이성보", "손혜원", "전현희", "이상민", "정홍원", "윤상현", "김한길", "직무관련성",
-           "감사원", "청와대", "행정안전부", "법무부", "국무총리", "국무위원",
+           "하태경", "이명박", "박근혜", "문재인", "이성보", "손혜원", "전현희", "이상민", "정홍원", "윤상현", "김한길", "직무관련성", "김태년", "이낙연", "박근혜", "박영선", "안철수", "주호영", "오세훈", "정세균", "추미애", "김병욱", "박덕흠", "성일종", "김기식", "김상조", "박병석", "심상정", "최인호", "이명박", "이완구", "나경원", "박원순", "홍남기", "김용태", "이상민", "박지원", "신동근", 
+           "감사원", "청와대", "행정안전부", "법무부", "국무총리", "국무위원", "검찰총장",
            '부정부패','부패방지', "명문화", "직권남용", "부패인식지수",
            '국회의원', "중앙부처", "뇌물죄", "금품수수", "부정청탁", "미공개정보", "퇴직공무원", "퇴직자", "대가성", "축의금", "경조사비", "인사청문회", "포퓰리즘",
-           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당", "국민의당",
+           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당", "국민의당", "원내대표", "정무위원회", "국회법", "여의도", "임직원", "법무부", "상임위", "정무위", "정무위원회", "사립학교", "법안소위", "새정치민주연합", "반부패정책협의회", "바른미래당", "국정조사", "부동산거래분석원", "새정치연합", "헌법재판소", "국토교통위", "국토교통위원회", "법제사법위원회", "법제사법위", "국토교통부",
            "떡값", "스폰서", "사익추구", "규정",
            "추상적", "포괄적", "이해당사자", "이해관계자",
            "지방자치단체장", 
@@ -207,28 +247,45 @@ data_word %>%  write_excel_csv("data_word.csv") # 중간저장.. 개빡친다!
 
 # 4.4. 사후 전처리 -----------------------------------------
 
-data_word %>% # 106,724 단어 추출
+data_word %>% # 106,377 단어 추출
   mutate(words = words %>% 
-           str_replace_all("땐|하는|으로부터|부터|들로부터|로부터|없어|높아|박은정|하지|하다시피|하고|우리도|하면|하기로|하러|하거나|하며|에서도|에서|에서도|에서는|하에서|에서만|에서였다|였던|였|였다는|였지만|했지만|했다|했다던가|했|했느냐가|했다지만|했는지를|했는지|했다고|했고|자는|하라고|하더라도|하라는|이라는|를|된다지만|않기로|안하다|하기|하자|되기|되길|만큼|만여|내놨다|않았다|됐다|으로|스스로|는|에|경우|들이|만원|제외|이후|생각|당시|제외|가지|가운데|하나|개월|지난달|산관", "") %>% # 불용어 제거
+           str_replace_all("땐|하는|으로부터|부터|들로부터|로부터|없어|높아|박은정|하지|하다시피|하고|우리도|하면|하기로|하러|하거나|하며|에서도|에서|에서도|에서는|하에서|에서만|에서였다|였던|였|였다는|였지만|했지만|했다|했다던가|했|했느냐가|했다지만|했는지를|했는지|했다고|했고|자는|하라고|하더라도|하라는|이라는|를|된다지만|않기로|안하다|하기|하자|되기|되길|만큼|만여|내놨다|않았다|됐다|으로|스스로|는|에|경우|들이|만원|제외|이후|생각|당시|제외|가지|가운데|하나|개월|지난달|산관|한국일보|일보", "") %>% # 불용어 제거
            str_replace_all("규정하", "규정") %>% 
            str_replace_all("등처벌조항|처벌조항도", "처벌조항") %>% 
            str_replace_all("보장하", "보장") %>% 
            str_replace_all("인식하", "인식") %>% 
            str_replace_all("투자하", "투자") %>% 
            str_replace_all("한목소리로", "한목소리") %>% 
-           str_replace_all("한국토지주택공사와", "한국토지주택공사")
+           str_replace_all("한국토지주택공사(와|사태)", "한국토지주택공사") %>% 
+           str_replace_all("대통령의", "대통령") 
          ) -> data_word_prep1
 data_word_prep1 %>% 
   anti_join(data_word_prep1 %>% 
               count(words) %>% 
               filter(!n >= 5) %>% # 빈도수 5 이상의 단어만 추출
               select(words),
-            by = "words") %>% # 96,942 단어
-  filter(words %>% str_length() >= 2) -> data_word_prep2 # 최종 70,050 단어
+            by = "words") %>% # 96,591 단어
+  filter(words %>% str_length() >= 2) %>% 
+  mutate(
+    words = ifelse(words %in% c("자유한국당", "한국당", "한국당은"), "자유한국당", words),
+    words = ifelse(words %in% c("민주당", "더불어민주당"), "더불어민주당", words),
+    words = ifelse(words %in% c("새누리당은", "새누리당"), "새누리당", words),
+    words = ifelse(words %in% c("한국은", "한국의", "한국"), "한국", words),
+    words = ifelse(words %in% c("새정치민주연합", "새정치연합"), "새정치민주연합", words),
+    words = ifelse(words == "법안심사소위", "법안심사소위원회", words)
+    ) -> data_word_prep2 # 최종 69,862 단어
+
+data_word_prep2 %>% 
+  count(words) %>% 
+  filter(words %>% str_detect("법안심사"))
+
 data_word_prep2 %>% write_excel_csv("data_final.csv")
 
 
 # 5. 분석 -----------------------------------------------
+
+par(family = "AppleGothic") # 시각화를 위한 설정 1: 기본 글꼴 지정
+theme_set(theme_gray(base_family = 'AppleGothic')) # 시각화를 위한 설정 2: plot용 글꼴 지정
 
 # 5.0.1. 데이터 불러오기 -------------------------------------
 
@@ -241,6 +298,11 @@ data_final %>%
     period = ifelse(id < 1228, "first", "second")
   ) -> data_final
 data_final %>% count(period)
+
+data_final %>% 
+  count(words) %>% 
+  arrange(desc(n)) %>% 
+  filter(words %>% str_detect("정무"))
 
 # 5.0.3. 단어의 빈도수 추이 살펴보기 ------------------------------
 
@@ -257,7 +319,6 @@ data_final %>% # 법안 통과 관련
 
 data_final %>% # 법안 통과 관련
   filter(words %in% c("입법", "법안", "통과")) %>%
-  filter(period == "second") %>% 
   count(quarterly) %>%
   ggplot(aes(x = quarterly, y = n)) +
   geom_rect(
@@ -328,3 +389,248 @@ data_tidylo %>%
   ) %>%
   arrange(desc(n)) %>%
   ungroup() -> data_final_second
+
+
+# 5.3. 빈도분석 시각화 ------------------------------------
+
+# 5.3.1. 빈도분석 시각화: 김영란법 시기 -------------------
+
+data_final_first %>% 
+  mutate(words = reorder(words, n)) %>%
+  slice_max(n, n = 20,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("") + ylab("")
+
+
+# 5.3.2. 빈도분석 시각화:  이해충돌방지법 시기 ------------
+
+data_final_second %>% 
+  mutate(words = reorder(words, n)) %>%
+  slice_max(n, n = 20,  with_ties = F) %>% 
+  ggplot(aes(x = fct_reorder(words, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 1) +
+  xlab("") + ylab("")
+
+
+# 5.4.1. 가중로그승산비 시각화: 김영란법 시기 -------------
+
+data_final_first %>% 
+  slice_max(log_odds, n = 20, with_ties = F) %>%
+  ggplot(mapping = aes(x=log_odds, 
+                       y=fct_reorder(words, log_odds))) +
+  geom_col() +
+  geom_text(aes(label = round(log_odds, digits = 4)), hjust = 1) +
+  xlab("") + ylab("")
+
+# 5.4.2. 가중로그승산비 시각화: 이해충돌방지법 시기 -------
+
+data_final_second %>% 
+  slice_max(log_odds, n = 20, with_ties = F) %>%
+  ggplot(mapping = aes(x=log_odds, 
+                       y=fct_reorder(words, log_odds))) +
+  geom_col() +
+  geom_text(aes(label = round(log_odds, digits = 4)), hjust = 1) +
+  xlab("") + ylab("")
+
+
+# 5.5. 빈도분석 및 가중로그승산비 테이블 -----------------------------
+
+data_final_first %>%
+  mutate(log_odds = round(log_odds, digits = 4)) %>%
+  slice_max(n, n = 20, with_ties = F) %>%
+  select(words, n) %>%
+  rename(단어_1기_빈도  = words,  빈도_1기  = n) %>%
+  bind_cols(
+    data_final_first %>%
+      mutate(log_odds = round(log_odds, digits = 4)) %>%
+      slice_max(log_odds, n = 20, with_ties = F) %>%
+      select(words, log_odds) %>%
+      rename(단어_1기_가중로그승산비  = words,  가중로그승산비_1기  = log_odds)
+  ) %>%
+  bind_cols(
+    data_final_second %>%
+      mutate(log_odds = round(log_odds, digits = 4)) %>%
+      slice_max(n, n = 20, with_ties = F) %>%
+      select(words, n) %>%
+      rename(단어_2기_빈도  = words,  빈도_2기  = n),
+    data_final_second %>%
+      mutate(log_odds = round(log_odds, digits = 4)) %>%
+      slice_max(log_odds, n = 20, with_ties = F) %>%
+      select(words, log_odds) %>%
+      rename(단어_2기_가중로그승산비  = words,  가중로그승산비_2기  = log_odds)
+  ) %>%
+  write_excel_csv("table.csv")
+
+
+# 5.6. 토픽모델링 ------------------------------------------
+
+
+# 5.6.1. DTM 생성 -----------------------------------------
+
+data_final %>% 
+  mutate(id = paste0(id, "_", date)) %>% 
+  count(id, words, sort = T) %>% 
+  bind_tf_idf(words, id, n) %>% 
+  cast_dtm(document = id,
+           term = words,
+           value = n) -> data_dtm
+str(data_dtm)
+topics <- c(2:15)
+topics %>% 
+  future_map(
+    LDA, x = data_dtm, control = list(seed = 486)
+    ) -> data_lda
+
+# 5.6.2. 엘보우 생성 ---------------------------------------
+
+tibble(
+  k = topics,
+  perplex = map_dbl(data_lda, perplexity)
+) -> data_lda_prep
+
+data_lda_prep %>% 
+  ggplot(mapping = aes(x = k, 
+                       y = perplex)) +
+  geom_point() +
+  geom_line() +
+  ggplot2::geom_vline(xintercept = 9, size = 1, color = 'red', alpha = 0.7, linetype = 2)
+
+
+# 5.6.3. 토픽모델링: 토픽 수 9개 ------------------------------
+
+data_lda <- LDA(data_dtm, k=9, control=list(seed=486))
+data_lda %>% 
+  tidy(matrix = "beta") -> data_topics
+data_topics %>% 
+  group_by(topic) %>% 
+  slice_max(beta, n = 30) %>%
+  ungroup() %>%
+  arrange(topic, -beta) -> data_topic_terms
+
+data_topic_terms %>% 
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  # mutate(topic = ifelse(topic == 1, "Topic1: 문제의 흐름: 공직비리",
+  #                       ifelse(topic == 2, "Topic2: 김영란법",
+  #                              ifelse(topic == 3, "Topic3: 정치의 흐름(국회)",
+  #                                     ifelse(topic == 4, "Topic4: 정책의 흐름","Topic5: 정책의 흐름"
+  #                                            # ifelse(topic == 5, "Topic5: 정책의 흐름",
+  #                                            #        ifelse(topic == 6, "Topic6: 정책의 흐름","Topic7: 정책선도가(권익위)"))
+  #                                            ))))) %>% 
+  ggplot(mapping = aes(x = beta, 
+                       y = term, 
+                       fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
+
+# 5.6.4. 시기별 누적 토픽수 -----------------------------------
+
+data_gamma <- tidy(data_lda, matrix = "gamma")
+data_gamma %>%
+  separate(document, c("document", "date"), sep = "_", convert = T) %>% 
+  mutate(
+    year = year(date),
+    month = month(date),
+    quarter = lubridate::quarter(date),
+    yq = paste0(year, ": ", quarter, "Q"),
+    quarterly = lubridate::yq(yq),
+    topic = as.factor(topic)
+  ) %>%
+  group_by(topic, year) %>%
+  summarise(sum = sum(gamma)) %>%
+  ungroup() -> vis
+vis %>% 
+  ggplot(aes(year, sum, fill = topic)) +
+  geom_bar(position = "stack", stat = "identity")
+
+
+# 5.7. 네트워크 분석 ----------------------------------------
+
+
+# 5.7.0. 네트워크 행위자 식별 ----------------------------------
+
+tibble(
+  words = c("경제부총리", "사회부총리","김영란", "국민권익위원회", "국민권익위원장", "행정심판위원회", "감사원", "청와대", "행정안전부", "법무부", "검찰총장",
+            "하태경", "이명박", "박근혜", "문재인", "이성보", "손혜원", "전현희", "이상민", "정홍원", "윤상현", "김한길", "김태년", "이낙연", "박근혜", "박영선", "안철수", "주호영", "오세훈", "정세균", "추미애", "김병욱", "박덕흠", "성일종", "김기식", "김상조", "박병석", "심상정", "최인호", "이명박", "이완구", "나경원", "박원순", "홍남기", "김용태", "이상민", "박지원", "신동근", 
+            "참여연대", "법제처", "부패영향평가", "국제투명성기구", "법안심사소위원회",
+           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당", "국민의당", "정무위원회", "정무위원회", "새정치민주연합", "반부패정책협의회", "바른미래당", "부동산거래분석원", "새정치연합", "헌법재판소", "국토교통위", "국토교통위원회", "법제사법위원회", "국토교통부"
+)) -> actor
+
+data_final %>% 
+  inner_join(actor, by = "words") %>% 
+  rename(actor = words) %>% 
+  select(id, date, actor, period) -> data_network
+
+
+# 5.7.1. 김영란법 시기 행위자 네트워크 -----------------------------
+
+
+data_network %>% 
+  filter(period == "first") %>% 
+  widyr::pairwise_count(
+    item = actor,
+    feature = id,
+    sort = T
+  ) %>% 
+  filter(n >= 5) %>%
+  as_tbl_graph(directed = F) %>% 
+  mutate(cent_dgr = centrality_degree(),
+         cent_btw = centrality_betweenness(),
+         cent_cls = centrality_closeness(),
+         cent_egn = centrality_eigen(),
+         cent_wgt = centrality_pagerank(weights = n),
+         ) -> data_pairs_graph_first
+data_pairs_graph_first %>% 
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha = n,
+                     edge_width = n),
+                 edge_color = "lightgray",
+                 show.legend = F) +
+  geom_node_point(aes(size = cent_wgt)) +
+  geom_node_text(aes(label = name), 
+                 repel = T,
+                 point.padding = unit(0.2, "lines"), family = 'AppleGothic') +
+  theme_void()
+
+
+# 5.7.2. 이해충돌방지법 시기 행위자 네트워크 --------------------------
+
+data_network %>% 
+  filter(period == "second") %>% 
+  widyr::pairwise_count(
+    item = actor,
+    feature = id,
+    sort = T
+  ) %>% 
+  filter(n >= 10) %>%
+  as_tbl_graph(directed = F) %>% 
+  mutate(cent_dgr = centrality_degree(),
+         cent_btw = centrality_betweenness(),
+         cent_cls = centrality_closeness(),
+         cent_egn = centrality_eigen(),
+         cent_wgt = centrality_pagerank(weights = n)
+         ) -> data_pairs_graph_second
+data_pairs_graph_second %>% 
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha = n,
+                     edge_width = n),
+                 edge_color = "lightgray",
+                 show.legend = F) +
+  geom_node_point(aes(size = cent_wgt)) +
+  geom_node_text(aes(label = name), 
+                 repel = T,
+                 point.padding = unit(0.2, "lines"), family = 'AppleGothic') +
+  theme_void()
+
+data_pairs_graph_first %>% 
+  as.data.frame() %>% 
+  write_excel_csv("network_first.csv")
+data_pairs_graph_second %>% 
+  as.data.frame() %>% 
+  write_excel_csv("network_second.csv")
+
