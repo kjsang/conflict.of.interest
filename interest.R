@@ -17,11 +17,8 @@ useNIADic() # 사전 불러오기: NIAdic 사용
 
 # 1. 데이터 불러오기 --------------------------------------------
 read_csv("news.csv") -> data # 데이터 불러오기: 전체 언론기사 중 지면기사 수집
-data %>% select(press) # press 확인
-
 
 # 2. 데이터 정제 -------------------------------------------
-
 # 2.1. 데이터 정제: 날짜 및 신문사 -------------------------------
 
 data %>% # 총 3,148 건 데이터 중
@@ -39,11 +36,9 @@ data_prep_ver1 %>% # 일간지만 뽑아서 1,816 건
            str_replace_all("\\[(동아일보|서울신문)\\]", "")) %>% 
   filter(!(year(date) == 2011 & month(date) <= 5 & day(date) <= 30) # 2011년 5월 31일 이전 기사 제외
          ) -> data_prep_ver2 # 1,784 건
+data_prep_ver2 %>% write_excel_csv("data_prep_ver2.csv")
 
 # 2.2. 데이터 정제: 기사제목 기준 필터링 (키워드) ----------------------------
-
-data_prep_ver2 
-data_prep_ver2 %>% write_excel_csv("data_prep_ver2.csv")
 
 data_prep_ver2 %>% 
   filter(!title %>% str_detect("북한|중국|해외|북핵|외교|국제")) %>% # 1,742 건
@@ -51,17 +46,11 @@ data_prep_ver2 %>%
   filter(title %>% str_detect("이해충돌|이해관계|공무원|청탁|공직|뇌물|부패|비리|공정|LH|특권|관피아")) -> data_prep_ver3 # 584 건
 data_prep_ver3 %>% write_excel_csv("data_prep_ver3.csv") # 중간 저장
 
-data_prep_ver2 %>% 
-  filter(!title %>% str_detect("북한|중국|해외|북핵|외교|국제")) %>% # 1,742 건
-  filter(!title %>% str_detect("수상|회고록|In&Out|왜냐면")) %>% # 1,731 건
-  filter(title %>% str_detect("김영란")) %>% 
-  write_excel_csv("data_prep_kim.csv")
-
 # 2.3. 데이터 정제: 기사제목 기준 필터링 (내용분석) ---------------------
 
 data_prep_ver3 %>% # 584 건 중 내용분석을 통해 걸러내기
   filter(!title %>% str_detect("특임검사|파워우먼|공직열전|보관신탁|휴직|인재개발|분쟁조정 심의|파워인터뷰")) -> data_prep_ver4
-data_prep_ver4 # 576 건
+data_prep_ver4 # 573 건
 data_prep_ver4 %>% write_excel_csv("data_prep_ver4.csv")
 
 # 2.4. 데이터 정제: 본문 태그 필터링 ------------------------------
@@ -91,7 +80,7 @@ data_prep_ver4 %>%
   ) -> data_prep_ver5
 
 data_prep_ver5 %>% # 내용이 적은 기사 제외 (포토 등)
-  filter(!content %>% str_length() <= 200) -> data_prep_ver5
+  filter(!content %>% str_length() <= 200) -> data_prep_ver5 # 포토기사 등 제거 544 건 
 
 data_prep_ver5 %>% write_excel_csv("data_prep_ver5.csv")
 
@@ -99,18 +88,15 @@ data_prep_ver5 %>% write_excel_csv("data_prep_ver5.csv")
 
 read_csv("data_prep_ver5.csv") -> data_prep_ver5
 
-data_prep_ver5 %>% 
-  arrange(desc(id))
-
 par(family = "AppleGothic") # 시각화를 위한 설정 1: 기본 글꼴 지정
 theme_set(theme_gray(base_family = 'AppleGothic')) # 시각화를 위한 설정 2: plot용 글꼴 지정
 
 # 3.1. 신문사별 기사 수 --------------------------------------
 
-data_prep_ver5 %>% # 544 건
+data_prep_ver5 %>% # 544 건 -> 최종 데이터셋
   count(press) %>% 
-  arrange(desc(n))
-
+  arrange(desc(n)) -> data_prep_신문사별
+data_prep_신문사별
 
 # 3.2. 날짜별 기사 수: 월별 ---------------------------------------
 data_prep_ver5 %>%
@@ -148,11 +134,10 @@ data_prep_ver6 %>%
   ggplot2::annotate("text", label = "2015-1 (n = 38)", x = as.Date("2015-01-01"), y = 45) +
   ggplot2::annotate("text", label = "2016-3 (n = 39)", x = as.Date("2016-07-01"), y = 52) +
   ggplot2::annotate("text", label = "2019-1 (n = 32)", x = as.Date("2019-01-01"), y = 40) +
-  ggplot2::annotate("text", label = "2021-1 (n = 109)", x = as.Date("2021-01-01"), y = 120)
-
+  ggplot2::annotate("text", label = "2021-1 (n = 109)", x = as.Date("2021-01-01"), y = 120) -> data_prep_분기별빈도
+data_prep_분기별빈도
 
 # 4. 토크나이징 --------------------------------------------
-
 # 4.1. 토크나이징 전 전처리 ------------------------------------
 
 data_prep_ver6 %>% 
@@ -187,8 +172,6 @@ data_prep_ver6 %>%
   ) -> data_prep_ver6
 
 # 4.2. 사용자 사전 --------------------------------------
-
-
 # 4.2.1. 빅카인즈 참고 --------------------------------------
 
 readxl::read_excel("bigkinds.xlsx") -> bigkinds
@@ -247,7 +230,7 @@ data_word %>%  write_excel_csv("data_word.csv") # 중간저장.. 개빡친다!
 
 # 4.4. 사후 전처리 -----------------------------------------
 
-data_word %>% # 106,377 단어 추출
+data_word %>% # 106,365 단어 추출
   mutate(words = words %>% 
            str_replace_all("땐|하는|으로부터|부터|들로부터|로부터|없어|높아|박은정|하지|하다시피|하고|우리도|하면|하기로|하러|하거나|하며|에서도|에서|에서도|에서는|하에서|에서만|에서였다|였던|였|였다는|였지만|했지만|했다|했다던가|했|했느냐가|했다지만|했는지를|했는지|했다고|했고|자는|하라고|하더라도|하라는|이라는|를|된다지만|않기로|안하다|하기|하자|되기|되길|만큼|만여|내놨다|않았다|됐다|으로|스스로|는|에|경우|들이|만원|제외|이후|생각|당시|제외|가지|가운데|하나|개월|지난달|산관|한국일보|일보", "") %>% # 불용어 제거
            str_replace_all("규정하", "규정") %>% 
@@ -264,7 +247,7 @@ data_word_prep1 %>%
               count(words) %>% 
               filter(!n >= 5) %>% # 빈도수 5 이상의 단어만 추출
               select(words),
-            by = "words") %>% # 96,591 단어
+            by = "words") %>% # 96,580 단어
   filter(words %>% str_length() >= 2) %>% 
   mutate(
     words = ifelse(words %in% c("자유한국당", "한국당", "한국당은"), "자유한국당", words),
@@ -273,11 +256,11 @@ data_word_prep1 %>%
     words = ifelse(words %in% c("한국은", "한국의", "한국"), "한국", words),
     words = ifelse(words %in% c("새정치민주연합", "새정치연합"), "새정치민주연합", words),
     words = ifelse(words == "법안심사소위", "법안심사소위원회", words)
-    ) -> data_word_prep2 # 최종 69,862 단어
+    ) -> data_word_prep2 # 최종 69,864 단어
 
 data_word_prep2 %>% 
   count(words) %>% 
-  filter(words %>% str_detect("법안심사"))
+  filter(words %>% str_detect("권익"))
 
 data_word_prep2 %>% write_excel_csv("data_final.csv")
 
@@ -297,19 +280,21 @@ data_final %>%
   mutate(
     period = ifelse(id < 1228, "first", "second")
   ) -> data_final
-data_final %>% count(period)
-
-data_final %>% 
-  count(words) %>% 
-  arrange(desc(n)) %>% 
-  filter(words %>% str_detect("정무"))
+data_final %>% count(period) -> data_final_시기별단어빈도
+data_final_시기별단어빈도
+# # A tibble: 2 x 2
+#   period     n
+#   <chr>  <int>
+# 1 first  17164
+# 2 second 52700
 
 # 5.0.3. 단어의 빈도수 추이 살펴보기 ------------------------------
 
 data_final %>% 
   count(quarterly) %>%
   ggplot(aes(x = quarterly, y = n)) +
-  geom_line(alpha = 0.8, color = "darkgreen") # 단어 추이도 나쁘지 않다!
+  geom_line(alpha = 0.8, color = "darkgreen") -> data_final_단어추이 # 단어 추이도 나쁘지 않다!
+data_final_단어추이
 
 # 5.1. 법안 통과 관련 빈도분석 ----------------------------------
 
@@ -343,8 +328,8 @@ data_final %>% # 법안 통과 관련
   ) +
   geom_line(alpha = 0.8, color = "darkgreen") +
   ylim(0, 250) +
-  theme_minimal()
-
+  theme_minimal() -> data_final_법안통과
+data_final_법안통과
 
 # 5.2. 빈도 및 가중로그승산비 ----------------------------------------
 
@@ -397,70 +382,72 @@ data_tidylo %>%
 
 data_final_first %>% 
   mutate(words = reorder(words, n)) %>%
-  slice_max(n, n = 20,  with_ties = F) %>% 
+  slice_max(n, n = 30,  with_ties = F) %>% 
   ggplot(aes(x = fct_reorder(words, n), y = n)) +
   geom_col() +
   coord_flip() +
-  geom_text(aes(label = n), hjust = 1) +
-  xlab("") + ylab("")
-
+  geom_text(aes(label = n), hjust = 1.5) +
+  xlab("") + ylab("") -> data_final_first_빈도분석
+data_final_first_빈도분석
 
 # 5.3.2. 빈도분석 시각화:  이해충돌방지법 시기 ------------
 
 data_final_second %>% 
   mutate(words = reorder(words, n)) %>%
-  slice_max(n, n = 20,  with_ties = F) %>% 
+  slice_max(n, n = 30,  with_ties = F) %>% 
   ggplot(aes(x = fct_reorder(words, n), y = n)) +
   geom_col() +
   coord_flip() +
-  geom_text(aes(label = n), hjust = 1) +
-  xlab("") + ylab("")
+  geom_text(aes(label = n), hjust = 1.5) +
+  xlab("") + ylab("") -> data_final_second_빈도분석
+data_final_second_빈도분석
 
 
 # 5.4.1. 가중로그승산비 시각화: 김영란법 시기 -------------
 
 data_final_first %>% 
-  slice_max(log_odds, n = 20, with_ties = F) %>%
+  slice_max(log_odds, n = 30, with_ties = F) %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
-  geom_text(aes(label = round(log_odds, digits = 4)), hjust = 1) +
-  xlab("") + ylab("")
+  geom_text(aes(label = round(log_odds, digits = 4)), hjust = 1.5) +
+  xlab("") + ylab("") -> data_final_first_가중로그승산비
+data_final_first_가중로그승산비
 
 # 5.4.2. 가중로그승산비 시각화: 이해충돌방지법 시기 -------
 
 data_final_second %>% 
-  slice_max(log_odds, n = 20, with_ties = F) %>%
+  slice_max(log_odds, n = 30, with_ties = F) %>%
   ggplot(mapping = aes(x=log_odds, 
                        y=fct_reorder(words, log_odds))) +
   geom_col() +
-  geom_text(aes(label = round(log_odds, digits = 4)), hjust = 1) +
-  xlab("") + ylab("")
-
+  geom_text(aes(label = round(log_odds, digits = 4)), hjust = 1.5) +
+  xlab("") + ylab("") -> data_final_second_가중로그승산비
+data_final_second_가중로그승산비
 
 # 5.5. 빈도분석 및 가중로그승산비 테이블 -----------------------------
 
 data_final_first %>%
   mutate(log_odds = round(log_odds, digits = 4)) %>%
-  slice_max(n, n = 20, with_ties = F) %>%
+  slice_max(n, n = 30, with_ties = F) %>%
   select(words, n) %>%
   rename(단어_1기_빈도  = words,  빈도_1기  = n) %>%
   bind_cols(
     data_final_first %>%
       mutate(log_odds = round(log_odds, digits = 4)) %>%
-      slice_max(log_odds, n = 20, with_ties = F) %>%
+      slice_max(log_odds, n = 30, with_ties = F) %>%
       select(words, log_odds) %>%
       rename(단어_1기_가중로그승산비  = words,  가중로그승산비_1기  = log_odds)
   ) %>%
   bind_cols(
     data_final_second %>%
       mutate(log_odds = round(log_odds, digits = 4)) %>%
-      slice_max(n, n = 20, with_ties = F) %>%
+      slice_max(n, n = 30, with_ties = F) %>%
       select(words, n) %>%
       rename(단어_2기_빈도  = words,  빈도_2기  = n),
     data_final_second %>%
       mutate(log_odds = round(log_odds, digits = 4)) %>%
-      slice_max(log_odds, n = 20, with_ties = F) %>%
+      slice_max(log_odds, n = 30, with_ties = F) %>%
       select(words, log_odds) %>%
       rename(단어_2기_가중로그승산비  = words,  가중로그승산비_2기  = log_odds)
   ) %>%
@@ -498,14 +485,16 @@ data_lda_prep %>%
                        y = perplex)) +
   geom_point() +
   geom_line() +
-  ggplot2::geom_vline(xintercept = 9, size = 1, color = 'red', alpha = 0.7, linetype = 2)
-
+  ggplot2::geom_vline(xintercept = 9, size = 1, color = 'red', alpha = 0.7, linetype = 2) -> data_lda_엘보우
+data_lda_엘보우
 
 # 5.6.3. 토픽모델링: 토픽 수 9개 ------------------------------
 
 data_lda <- LDA(data_dtm, k=9, control=list(seed=486))
 data_lda %>% 
   tidy(matrix = "beta") -> data_topics
+data_topics %>% write_excel_csv("data_topics.csv")
+read_csv("data_topics.csv") -> data_topics
 data_topics %>% 
   group_by(topic) %>% 
   slice_max(beta, n = 30) %>%
@@ -526,7 +515,8 @@ data_topic_terms %>%
                        fill = factor(topic))) +
   geom_col(show.legend = FALSE) +
   facet_wrap(~ topic, scales = "free") +
-  scale_y_reordered()
+  scale_y_reordered() -> data_topic_토픽모델링
+data_topic_토픽모델링
 
 # 5.6.4. 시기별 누적 토픽수 -----------------------------------
 
@@ -543,11 +533,11 @@ data_gamma %>%
   ) %>%
   group_by(topic, year) %>%
   summarise(sum = sum(gamma)) %>%
-  ungroup() -> vis
-vis %>% 
+  ungroup() -> data_gamma_visualization
+data_gamma_visualization %>% 
   ggplot(aes(year, sum, fill = topic)) +
-  geom_bar(position = "stack", stat = "identity")
-
+  geom_bar(position = "stack", stat = "identity") -> data_gamma_시기별토픽
+data_gamma_시기별토픽
 
 # 5.7. 네트워크 분석 ----------------------------------------
 
@@ -595,8 +585,8 @@ data_pairs_graph_first %>%
   geom_node_text(aes(label = name), 
                  repel = T,
                  point.padding = unit(0.2, "lines"), family = 'AppleGothic') +
-  theme_void()
-
+  theme_void() -> data_network_first_시각화
+data_network_first_시각화
 
 # 5.7.2. 이해충돌방지법 시기 행위자 네트워크 --------------------------
 
@@ -625,7 +615,8 @@ data_pairs_graph_second %>%
   geom_node_text(aes(label = name), 
                  repel = T,
                  point.padding = unit(0.2, "lines"), family = 'AppleGothic') +
-  theme_void()
+  theme_void() -> data_network_second_시각화
+data_network_second_시각화
 
 data_pairs_graph_first %>% 
   as.data.frame() %>% 
@@ -634,3 +625,28 @@ data_pairs_graph_second %>%
   as.data.frame() %>% 
   write_excel_csv("network_second.csv")
 
+
+# 6. 최종 시각화 정리 ----------------------------------------
+
+data_prep_신문사별
+data_prep_분기별빈도
+
+data_final_시기별단어빈도
+
+data_final_first_빈도분석
+data_final_first_가중로그승산비
+data_final_second_빈도분석
+data_final_second_가중로그승산비
+read_csv("table.csv")
+
+data_final_단어추이
+data_final_법안통과
+
+data_lda_엘보우
+data_topic_토픽모델링
+data_gamma_시기별토픽
+
+data_network_first_시각화
+data_network_second_시각화
+read_csv("network_first.csv")
+read_csv("network_second.csv")
