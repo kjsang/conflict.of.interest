@@ -500,6 +500,7 @@ data_topics %>%
   slice_max(beta, n = 30) %>%
   ungroup() %>%
   arrange(topic, -beta) -> data_topic_terms
+data_topic_terms %>% write_excel_csv("topic.csv")
 
 data_topic_terms %>% 
   mutate(term = reorder_within(term, beta, topic)) %>%
@@ -645,6 +646,7 @@ data_final_법안통과
 data_lda_엘보우
 data_topic_토픽모델링
 data_gamma_시기별토픽
+read_csv("topic.csv")
 
 data_network_first_시각화
 data_network_second_시각화
