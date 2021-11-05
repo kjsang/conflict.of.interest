@@ -130,11 +130,15 @@ data_prep_ver6 %>%
             alpha = 0.3) +
   geom_line(alpha = 0.8, color = "darkgreen") +
   ylim(0, 150) +
-  theme_minimal() +
+  theme_minimal(base_family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "김영란법 시기", x = as.Date("2013-04-01"), y = 140, family = 'AppleGothic') +
+ggplot2::annotate("text", label = "이해충돌방지법 시기", x = as.Date("2018-07-01"), y = 140, family = 'AppleGothic') +
   ggplot2::annotate("text", label = "2015-1 (n = 38)", x = as.Date("2015-01-01"), y = 45) +
   ggplot2::annotate("text", label = "2016-3 (n = 39)", x = as.Date("2016-07-01"), y = 52) +
   ggplot2::annotate("text", label = "2019-1 (n = 32)", x = as.Date("2019-01-01"), y = 40) +
-  ggplot2::annotate("text", label = "2021-1 (n = 109)", x = as.Date("2021-01-01"), y = 120) -> data_prep_분기별빈도
+  ggplot2::annotate("text", label = "2021-1 (n = 109)", x = as.Date("2020-10-01"), y = 120) +
+  xlab("분기") +
+  ylab("기사 빈도수")  -> data_prep_분기별빈도
 data_prep_분기별빈도
 
 # 4. 토크나이징 --------------------------------------------
@@ -289,46 +293,75 @@ data_final_시기별단어빈도
 # 2 second 52700
 
 # 5.0.3. 단어의 빈도수 추이 살펴보기 ------------------------------
+data_final %>% 
+  count(quarterly) %>% 
+  filter(n >= 5000)
 
 data_final %>% 
   count(quarterly) %>%
   ggplot(aes(x = quarterly, y = n)) +
-  geom_line(alpha = 0.8, color = "darkgreen") -> data_final_단어추이 # 단어 추이도 나쁘지 않다!
+  geom_line(alpha = 0.8, color = "darkgreen") +
+  geom_rect( 
+            aes(xmin = as.Date("2011-01-01", "%Y-%m-%d"), 
+                xmax = as.Date("2015-04-01",  "%Y-%m-%d"),
+                ymin = -Inf, 
+                ymax = Inf),
+            fill = "lightgray", 
+            alpha = 0.3) +
+    geom_rect( 
+            aes(xmin = as.Date("2015-04-01", "%Y-%m-%d"), 
+                xmax = as.Date("2021-07-01",  "%Y-%m-%d"),
+                ymin = -Inf, 
+                ymax = Inf),
+            fill = "gray", 
+            alpha = 0.3) +
+  geom_line(alpha = 0.8, color = "darkgreen") +
+  ylim(0, 20000) +
+  theme_minimal(base_family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "김영란법 시기", x = as.Date("2013-04-01"), y = 18000, family = 'AppleGothic') +
+ggplot2::annotate("text", label = "이해충돌방지법 시기", x = as.Date("2018-07-01"), y = 18000, family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "2015-1 (n = 5,646)", x = as.Date("2015-01-01"), y = 6200) +
+  ggplot2::annotate("text", label = "2016-3 (n = 5,696)", x = as.Date("2016-07-01"), y = 7200) +
+  ggplot2::annotate("text", label = "2019-1 (n = 5,081)", x = as.Date("2019-01-01"), y = 5800) +
+  ggplot2::annotate("text", label = "2021-1 (n = 16,035)", x = as.Date("2020-09-01"), y = 17000) +
+  xlab("분기") +
+  ylab("단어 빈도수") -> data_final_단어추이 # 단어 추이도 나쁘지 않다!
 data_final_단어추이
 
 # 5.1. 법안 통과 관련 빈도분석 ----------------------------------
 
 data_final %>% # 법안 통과 관련
   filter(words %in% c("입법", "법안", "통과")) %>% 
-  count(words)
+  count(quarterly) %>% 
+  filter(n >= 150)
 
 data_final %>% # 법안 통과 관련
   filter(words %in% c("입법", "법안", "통과")) %>%
   count(quarterly) %>%
   ggplot(aes(x = quarterly, y = n)) +
-  geom_rect(
-    aes(
-      xmin = as.Date("2011-01-01", "%Y-%m-%d"),
-      xmax = as.Date("2015-04-01",  "%Y-%m-%d"),
-      ymin = -Inf,
-      ymax = Inf
-    ),
-    fill = "lightgray",
-    alpha = 0.3
-  ) +
-  geom_rect(
-    aes(
-      xmin = as.Date("2015-04-01", "%Y-%m-%d"),
-      xmax = as.Date("2021-07-01",  "%Y-%m-%d"),
-      ymin = -Inf,
-      ymax = Inf
-    ),
-    fill = "gray",
-    alpha = 0.3
-  ) +
+  geom_rect( 
+            aes(xmin = as.Date("2011-01-01", "%Y-%m-%d"), 
+                xmax = as.Date("2015-04-01",  "%Y-%m-%d"),
+                ymin = -Inf, 
+                ymax = Inf),
+            fill = "lightgray", 
+            alpha = 0.3) +
+    geom_rect( 
+            aes(xmin = as.Date("2015-04-01", "%Y-%m-%d"), 
+                xmax = as.Date("2021-07-01",  "%Y-%m-%d"),
+                ymin = -Inf, 
+                ymax = Inf),
+            fill = "gray", 
+            alpha = 0.3) +
   geom_line(alpha = 0.8, color = "darkgreen") +
   ylim(0, 250) +
-  theme_minimal() -> data_final_법안통과
+  theme_minimal(base_family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "김영란법 시기", x = as.Date("2013-04-01"), y = 225, family = 'AppleGothic') +
+ggplot2::annotate("text", label = "이해충돌방지법 시기", x = as.Date("2018-07-01"), y = 225, family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "2015-1 (n = 165)", x = as.Date("2015-01-01"), y = 180) +
+  ggplot2::annotate("text", label = "2021-1 (n = 185)", x = as.Date("2020-09-01"), y = 200) +
+  xlab("분기") +
+  ylab("단어 빈도수") -> data_final_법안통과
 data_final_법안통과
 
 # 5.2. 빈도 및 가중로그승산비 ----------------------------------------
@@ -516,7 +549,9 @@ data_topic_terms %>%
                        fill = factor(topic))) +
   geom_col(show.legend = FALSE) +
   facet_wrap(~ topic, scales = "free") +
-  scale_y_reordered() -> data_topic_토픽모델링
+  scale_y_reordered() +
+  ylab("단어") +
+  xlab("베타값(beta)") -> data_topic_토픽모델링
 data_topic_토픽모델링
 
 # 5.6.4. 시기별 누적 토픽수 -----------------------------------
@@ -652,4 +687,3 @@ data_network_first_시각화
 data_network_second_시각화
 read_csv("network_first.csv")
 read_csv("network_second.csv")
-\
