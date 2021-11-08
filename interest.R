@@ -12,6 +12,9 @@ pacman::p_load(
   ggraph, widyr, tidygraph
 )
 
+citation("rvest")
+
+
 RStudio.Version() # R Studio 버전 확인
 useNIADic() # 사전 불러오기: NIAdic 사용
 
@@ -571,12 +574,112 @@ data_gamma %>%
   summarise(sum = sum(gamma)) %>%
   ungroup() -> data_gamma_visualization
 data_gamma_visualization %>% 
-  ggplot(aes(year, sum, fill = topic)) +
+  ggplot(aes(year, sum, fill = topic, label = sum)) +
   geom_bar(position = "stack", stat = "identity") -> data_gamma_시기별토픽
 data_gamma_시기별토픽
 
 # 5.7. 네트워크 분석 ----------------------------------------
+data_prep_ver5 %>%
+  mutate(
+    year = year(date),
+    month = month(date),
+    quarter = lubridate::quarter(date),
+    yq = paste0(year, ": ", quarter, "Q"),
+    quarterly = lubridate::yq(yq))  -> data_prep_ver6
 
+data_prep_ver6 %>% 
+  mutate(
+    content = content %>% 
+      str_replace_all("\\‘.*(이해충돌 방지법|이해충돌방지법|이해충돌 방지법안| 이해충돌방지법안).*\\’", "이해충돌방지법") %>% 
+      str_replace_all("공직자윤리법|공직자 윤리법", "공직자윤리법") %>% 
+      str_replace_all("국민권익위|권익위|국민권익위원회", "국민권익위원회") %>% 
+      str_replace_all("국민권익위원회장|국민권익위원장|권익위장|권익위원장|국민권익위장", "국민권익위원장") %>% 
+      str_replace_all("이해 충돌", "이해충돌") %>% 
+      str_replace_all("이해 충돌 방지", "이해충돌방지") %>% 
+      str_replace_all("지방자치단체|자치단체", "지방자치단체") %>% 
+      str_replace_all("금품수수|금품 수수", "금품수수") %>% 
+      str_replace_all("부정 청탁|부정청탁|부정한 청탁", "부정청탁") %>% 
+      str_replace_all("국민 신문고|국민신문고", "국민신문고") %>% 
+      str_replace_all("입법 취지|입법취지", "입법취지") %>% 
+      str_replace_all("공공 분야|공공분야", "공공분야") %>% 
+      str_replace_all("전수 조사|전수조사", "전수조사") %>% 
+      str_replace_all("소급 적용|소급적용", "소급적용") %>% 
+      str_replace_all("미공개 정보|미공개정보", "미공개정보") %>% 
+      str_replace_all("퇴직 공무원|퇴직공무원", "퇴직공무원") %>% 
+      str_replace_all("법사위", "법제사법위원회") %>% 
+      str_replace_all("법안소위|법안심사 소위|법안 심사 소위|법안심사소위", "법안심사소위") %>% 
+      str_replace_all("정무 위원회|정무위|정무위원회", "정무위원회") %>% 
+      str_replace_all("국토교통위|국토교통위원회", "국토교통위원회") %>% 
+      str_replace_all("제3자|제삼자", "제삼자") %>% 
+      str_replace_all("인사 청문회|인사청문회", "인사청문회") %>% 
+      str_replace_all("사익 추구|사익추구", "사익추구") %>% 
+      str_replace_all("한국토지주택공사\\(lh\\)|한국토지주택공사\\(LH\\)|한국토지주택공사|LH|LH공사|LH 공사|토지주택공사|엘에이치", "한국토지주택공사") %>% 
+      str_replace_all("직무 관련성|직무관련성", "직무관련성")
+  ) -> data_prep_ver6
+
+data_prep_ver6 %>% 
+  mutate(period = ifelse(id < 1228, "first", "second")) %>% 
+  unnest_tokens(input = content,
+                output = sentences,
+                token = "regex", 
+                pattern = "\\.",
+                drop = F) %>% 
+  select(-content) -> data_sentence
+
+data_sentence %>% 
+  mutate(sentences = sentences %>% 
+           str_replace_all("[^가-힣 ]", " "),
+         id = 1:length(sentences)) -> data_sentence_prep1
+data_sentence_prep1
+
+user_dic <- data.frame(
+  term = c('이해충돌방지법안','이해충돌방지법', "김영란법", "공직자윤리법", "이해충돌", "전수조사", "공공분야", "소급적용", "경제부총리", "사회부총리",
+           "김영란", "국민권익위원회", "국민권익위원장", "행정심판위원회", "참여연대", "법제처", "부패영향평가", "국제투명성기구",
+           "하태경", "이명박", "박근혜", "문재인", "이성보", "손혜원", "전현희", "이상민", "정홍원", "윤상현", "김한길", "직무관련성", "김태년", "이낙연", "박근혜", "박영선", "안철수", "주호영", "오세훈", "정세균", "추미애", "김병욱", "박덕흠", "성일종", "김기식", "김상조", "박병석", "심상정", "최인호", "이명박", "이완구", "나경원", "박원순", "홍남기", "김용태", "이상민", "박지원", "신동근", 
+           "감사원", "청와대", "행정안전부", "법무부", "국무총리", "국무위원", "검찰총장",
+           '부정부패','부패방지', "명문화", "직권남용", "부패인식지수",
+           '국회의원', "중앙부처", "뇌물죄", "금품수수", "부정청탁", "미공개정보", "퇴직공무원", "퇴직자", "대가성", "축의금", "경조사비", "인사청문회", "포퓰리즘",
+           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당", "국민의당", "원내대표", "정무위원회", "국회법", "여의도", "임직원", "법무부", "상임위", "정무위", "정무위원회", "사립학교", "법안소위", "새정치민주연합", "반부패정책협의회", "바른미래당", "국정조사", "부동산거래분석원", "새정치연합", "헌법재판소", "국토교통위", "국토교통위원회", "법제사법위원회", "법제사법위", "국토교통부",
+           "떡값", "스폰서", "사익추구", "규정",
+           "추상적", "포괄적", "이해당사자", "이해관계자",
+           "지방자치단체장", 
+           '코로나19'), 
+  tag ='ncn')
+buildDictionary(ext_dic = 'NIAdic', user_dic = user_dic)
+
+data_sentence_prep1 %>% 
+  unnest_tokens(input = sentences,
+                output = words,
+                token = extractNoun,
+                drop = F) %>% 
+  select(-sentences) -> data_word_network
+data_word_network %>% # 109,591 단어 추출
+  mutate(words = words %>% 
+           str_replace_all("땐|하는|으로부터|부터|들로부터|로부터|없어|높아|박은정|하지|하다시피|하고|우리도|하면|하기로|하러|하거나|하며|에서도|에서|에서도|에서는|하에서|에서만|에서였다|였던|였|였다는|였지만|했지만|했다|했다던가|했|했느냐가|했다지만|했는지를|했는지|했다고|했고|자는|하라고|하더라도|하라는|이라는|를|된다지만|않기로|안하다|하기|하자|되기|되길|만큼|만여|내놨다|않았다|됐다|으로|스스로|는|에|경우|들이|만원|제외|이후|생각|당시|제외|가지|가운데|하나|개월|지난달|산관|한국일보|일보", "") %>% # 불용어 제거
+           str_replace_all("규정하", "규정") %>% 
+           str_replace_all("등처벌조항|처벌조항도", "처벌조항") %>% 
+           str_replace_all("보장하", "보장") %>% 
+           str_replace_all("인식하", "인식") %>% 
+           str_replace_all("투자하", "투자") %>% 
+           str_replace_all("한목소리로", "한목소리") %>% 
+           str_replace_all("한국토지주택공사(와|사태)", "한국토지주택공사") %>% 
+           str_replace_all("대통령의", "대통령") 
+         ) -> data_network_word_prep1
+data_network_word_prep1 %>% 
+  anti_join(data_network_word_prep1 %>% 
+              count(words) %>% 
+              filter(!n >= 5) %>% # 빈도수 5 이상의 단어만 추출
+              select(words),
+            by = "words") %>% # 96,580 단어
+  filter(words %>% str_length() >= 2) %>% 
+  mutate(
+    words = ifelse(words %in% c("자유한국당", "한국당", "한국당은"), "자유한국당", words),
+    words = ifelse(words %in% c("민주당", "더불어민주당"), "더불어민주당", words),
+    words = ifelse(words %in% c("새누리당은", "새누리당"), "새누리당", words),
+    words = ifelse(words %in% c("한국은", "한국의", "한국"), "한국", words),
+    words = ifelse(words %in% c("새정치민주연합", "새정치연합"), "새정치민주연합", words),
+    words = ifelse(words == "법안심사소위", "법안심사소위원회", words)
+    ) -> data_network_word_prep2
 
 # 5.7.0. 네트워크 행위자 식별 ----------------------------------
 
@@ -584,10 +687,10 @@ tibble(
   words = c("경제부총리", "사회부총리","김영란", "국민권익위원회", "국민권익위원장", "행정심판위원회", "감사원", "청와대", "행정안전부", "법무부", "검찰총장",
             "하태경", "이명박", "박근혜", "문재인", "이성보", "손혜원", "전현희", "이상민", "정홍원", "윤상현", "김한길", "김태년", "이낙연", "박근혜", "박영선", "안철수", "주호영", "오세훈", "정세균", "추미애", "김병욱", "박덕흠", "성일종", "김기식", "김상조", "박병석", "심상정", "최인호", "이명박", "이완구", "나경원", "박원순", "홍남기", "김용태", "이상민", "박지원", "신동근", 
             "참여연대", "법제처", "부패영향평가", "국제투명성기구", "법안심사소위원회",
-           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당", "국민의당", "정무위원회", "정무위원회", "새정치민주연합", "반부패정책협의회", "바른미래당", "부동산거래분석원", "새정치연합", "헌법재판소", "국토교통위", "국토교통위원회", "법제사법위원회", "국토교통부"
+           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당",  "여당",  "야당", "국민의당", "정무위원회", "정무위원회", "새정치민주연합", "반부패정책협의회", "바른미래당", "부동산거래분석원", "새정치연합", "헌법재판소", "국토교통위", "국토교통위원회", "법제사법위원회", "국토교통부"
 )) -> actor
 
-data_final %>% 
+data_network_word_prep2 %>% 
   inner_join(actor, by = "words") %>% 
   rename(actor = words) %>% 
   select(id, date, actor, period) -> data_network
@@ -603,7 +706,7 @@ data_network %>%
     feature = id,
     sort = T
   ) %>% 
-  filter(n >= 5) %>%
+  filter(n >= 3) %>%
   as_tbl_graph(directed = F) %>% 
   mutate(cent_dgr = centrality_degree(),
          cent_btw = centrality_betweenness(),
