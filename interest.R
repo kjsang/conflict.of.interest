@@ -687,13 +687,15 @@ tibble(
   words = c("경제부총리", "사회부총리","김영란", "국민권익위원회", "국민권익위원장", "행정심판위원회", "감사원", "청와대", "행정안전부", "법무부", "검찰총장",
             "하태경", "이명박", "박근혜", "문재인", "이성보", "손혜원", "전현희", "이상민", "정홍원", "윤상현", "김한길", "김태년", "이낙연", "박근혜", "박영선", "안철수", "주호영", "오세훈", "정세균", "추미애", "김병욱", "박덕흠", "성일종", "김기식", "김상조", "박병석", "심상정", "최인호", "이명박", "이완구", "나경원", "박원순", "홍남기", "김용태", "이상민", "박지원", "신동근", 
             "참여연대", "법제처", "부패영향평가", "국제투명성기구", "법안심사소위원회",
-           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당",  "여당",  "야당", "국민의당", "정무위원회", "정무위원회", "새정치민주연합", "반부패정책협의회", "바른미래당", "부동산거래분석원", "새정치연합", "헌법재판소", "국토교통위", "국토교통위원회", "법제사법위원회", "국토교통부"
+           '국민의힘', '자유한국당', '민주당', "더불어민주당", "정의당",  "국민의당", "정무위원회", "정무위원회", "새정치민주연합", "반부패정책협의회", "바른미래당", "부동산거래분석원", "새정치연합", "헌법재판소", "국토교통위", "국토교통위원회", "법제사법위원회", "국토교통부"
 )) -> actor
 
 data_network_word_prep2 %>% 
   inner_join(actor, by = "words") %>% 
   rename(actor = words) %>% 
   select(id, date, actor, period) -> data_network
+data_network %>% 
+  write_excel_csv("data_network.csv")
 
 
 # 5.7.1. 김영란법 시기 행위자 네트워크 -----------------------------
@@ -706,7 +708,7 @@ data_network %>%
     feature = id,
     sort = T
   ) %>% 
-  filter(n >= 3) %>%
+  filter(n >= 5) %>%
   as_tbl_graph(directed = F) %>% 
   mutate(cent_dgr = centrality_degree(),
          cent_btw = centrality_betweenness(),
@@ -790,3 +792,23 @@ data_network_first_시각화
 data_network_second_시각화
 read_csv("network_first.csv")
 read_csv("network_second.csv")
+
+
+# 7.1. 행위자별 기사 ---------------------------------------------
+
+
+data_prep_ver6 %>% 
+  filter(content %>% str_detect("김용태")) %>% 
+  write_excel_csv("김용태.csv")
+
+data_prep_ver6
+data_prep_ver1 %>% 
+  mutate(citation = paste0(press, ". ", "(", date, "). ", title, ".")) %>% 
+  select(id, citation) -> join
+data_prep_ver6 %>% 
+  left_join(join, by ="id") %>% 
+  select(date, ref, citation, content) %>% 
+  mutate(date = as.character(date) %>% 
+           str_replace_all("-",""),
+         내용 = "") %>% 
+  write_excel_csv("data_analysis_prep.csv")
