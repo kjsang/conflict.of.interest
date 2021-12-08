@@ -573,10 +573,20 @@ data_gamma %>%
   group_by(topic, year) %>%
   summarise(sum = sum(gamma)) %>%
   ungroup() -> data_gamma_visualization
+
+# 시기별 토픽: 양치기 
 data_gamma_visualization %>% 
   ggplot(aes(year, sum, fill = topic, label = sum)) +
   geom_bar(position = "stack", stat = "identity") -> data_gamma_시기별토픽
 data_gamma_시기별토픽
+
+# 시기별 토픽: 비율 그래프 
+data_gamma_visualization %>% 
+  ggplot(aes(year, sum, fill = topic, label = sum)) +
+  geom_bar(position = "fill", stat = "identity") +
+  ylab("%") +
+  xlab("year")-> data_gamma_시기별토픽_비율
+data_gamma_시기별토픽_비율
 
 # 5.7. 네트워크 분석 ----------------------------------------
 data_prep_ver5 %>%
