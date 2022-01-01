@@ -13,7 +13,7 @@ pacman::p_load(
 )
 
 citation("rvest")
-
+citation("tidygraph")
 
 RStudio.Version() # R Studio 버전 확인
 useNIADic() # 사전 불러오기: NIAdic 사용
@@ -134,7 +134,7 @@ data_prep_ver6 %>%
   geom_line(alpha = 0.8, color = "darkgreen") +
   ylim(0, 150) +
   theme_minimal(base_family = 'AppleGothic') +
-  ggplot2::annotate("text", label = "김영란법 시기", x = as.Date("2013-04-01"), y = 140, family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "청탁금지법 시기", x = as.Date("2013-04-01"), y = 140, family = 'AppleGothic') +
 ggplot2::annotate("text", label = "이해충돌방지법 시기", x = as.Date("2018-07-01"), y = 140, family = 'AppleGothic') +
   ggplot2::annotate("text", label = "2015-1 (n = 38)", x = as.Date("2015-01-01"), y = 45) +
   ggplot2::annotate("text", label = "2016-3 (n = 39)", x = as.Date("2016-07-01"), y = 52) +
@@ -281,7 +281,7 @@ theme_set(theme_gray(base_family = 'AppleGothic')) # 시각화를 위한 설정 
 
 read_csv("data_final.csv") -> data_final
 
-# 5.0.2. 태깅: 김영란법(first)과 이해충돌방지법(second) -------------
+# 5.0.2. 태깅: 청탁금지법(first)과 이해충돌방지법(second) -------------
 
 data_final %>% 
   mutate(
@@ -321,7 +321,7 @@ data_final %>%
   geom_line(alpha = 0.8, color = "darkgreen") +
   ylim(0, 20000) +
   theme_minimal(base_family = 'AppleGothic') +
-  ggplot2::annotate("text", label = "김영란법 시기", x = as.Date("2013-04-01"), y = 18000, family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "청탁금지법 시기", x = as.Date("2013-04-01"), y = 18000, family = 'AppleGothic') +
 ggplot2::annotate("text", label = "이해충돌방지법 시기", x = as.Date("2018-07-01"), y = 18000, family = 'AppleGothic') +
   ggplot2::annotate("text", label = "2015-1 (n = 5,646)", x = as.Date("2015-01-01"), y = 6200) +
   ggplot2::annotate("text", label = "2016-3 (n = 5,696)", x = as.Date("2016-07-01"), y = 7200) +
@@ -359,7 +359,7 @@ data_final %>% # 법안 통과 관련
   geom_line(alpha = 0.8, color = "darkgreen") +
   ylim(0, 250) +
   theme_minimal(base_family = 'AppleGothic') +
-  ggplot2::annotate("text", label = "김영란법 시기", x = as.Date("2013-04-01"), y = 225, family = 'AppleGothic') +
+  ggplot2::annotate("text", label = "청탁금지법 시기", x = as.Date("2013-04-01"), y = 225, family = 'AppleGothic') +
 ggplot2::annotate("text", label = "이해충돌방지법 시기", x = as.Date("2018-07-01"), y = 225, family = 'AppleGothic') +
   ggplot2::annotate("text", label = "2015-1 (n = 165)", x = as.Date("2015-01-01"), y = 180) +
   ggplot2::annotate("text", label = "2021-1 (n = 185)", x = as.Date("2020-09-01"), y = 200) +
@@ -384,7 +384,7 @@ data_tf_idf %>%
   rename(log_odds = "log_odds_weighted") -> data_tidylo
 
 
-# 5.2.3. 단어 중심으로 데이터 통합: 김영란법 시기 -------------------------------
+# 5.2.3. 단어 중심으로 데이터 통합: 청탁금지법 시기 -------------------------------
 
 data_tidylo %>% 
   filter(period == "first") %>% 
@@ -414,7 +414,7 @@ data_tidylo %>%
 
 # 5.3. 빈도분석 시각화 ------------------------------------
 
-# 5.3.1. 빈도분석 시각화: 김영란법 시기 -------------------
+# 5.3.1. 빈도분석 시각화: 청탁금지법 시기 -------------------
 
 data_final_first %>% 
   mutate(words = reorder(words, n)) %>%
@@ -439,7 +439,7 @@ data_final_second %>%
 data_final_second_빈도분석
 
 
-# 5.4.1. 가중로그승산비 시각화: 김영란법 시기 -------------
+# 5.4.1. 가중로그승산비 시각화: 청탁금지법 시기 -------------
 
 data_final_first %>% 
   slice_max(log_odds, n = 30, with_ties = F) %>%
@@ -541,7 +541,7 @@ data_topic_terms %>% write_excel_csv("topic.csv")
 data_topic_terms %>% 
   mutate(term = reorder_within(term, beta, topic)) %>%
   # mutate(topic = ifelse(topic == 1, "Topic1: 문제의 흐름: 공직비리",
-  #                       ifelse(topic == 2, "Topic2: 김영란법",
+  #                       ifelse(topic == 2, "Topic2: 청탁금지법",
   #                              ifelse(topic == 3, "Topic3: 정치의 흐름(국회)",
   #                                     ifelse(topic == 4, "Topic4: 정책의 흐름","Topic5: 정책의 흐름"
   #                                            # ifelse(topic == 5, "Topic5: 정책의 흐름",
@@ -708,7 +708,7 @@ data_network %>%
   write_excel_csv("data_network.csv")
 
 
-# 5.7.1. 김영란법 시기 행위자 네트워크 -----------------------------
+# 5.7.1. 청탁금지법 시기 행위자 네트워크 -----------------------------
 
 
 data_network %>% 
@@ -822,3 +822,23 @@ data_prep_ver6 %>%
            str_replace_all("-",""),
          내용 = "") %>% 
   write_excel_csv("data_analysis_prep.csv")
+
+
+# 8. 부패인식지수 -------------------------------------------
+
+tibble(
+  year = c(2008:2020),
+  score = c(56, 55, 54, 54, 56, 55, 55, 54, 53, 54, 57, 59, 61),
+  rank = c(40, 39, 39, 43, 45, 46, 44, 43, 52, 51, 45, 39, 33)
+) -> index
+index %>% 
+  ggplot2::ggplot(aes(x = year, y = rank, label = rank)) +
+  theme_classic(base_family = 'AppleGothic') +
+  geom_line(color = "darkgreen",
+            linetype = 2) +
+  scale_y_reverse() +
+  scale_x_continuous(
+    breaks = c(2008:2020)) +
+  geom_text(size = 4, vjust = 0) +
+  xlab("연도") +
+  ylab("순위")
