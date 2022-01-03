@@ -120,7 +120,7 @@ data_word %>%  write_excel_csv("data_word.csv")
 이해충돌 방지법의 정책결정과정을 분석하기 위해 국내 신문기사를 대상으로 텍스트 마이닝 기법을 통한 텍스트의 최소 단위인 단어를 추출하였습니다. 이를 위해 `KoNLP 패키지(Jeon & Kim, 2016)`를 활용한 한글 토큰화(tokenizing) 작업과 형태소 분석 및 전처리를 수행하였습니다. 데이터 셋 `544`건의 기사를 형태소 분석하여 명사만을 추출해 총 `106,365` 건의 단어 데이터 셋을 구성하였습니다. 숫자 및 불용어를 제거하고 빈도수를 기준(빈도수 5 이하 단어 제거)으로 전처리를 수행하여 해당 데이터를 `96,580` 개의 단어로 전환할 수 있었습니다. 이후 한 글자 단어를 제외하고 유사 단어군을 통합하는 과정을 거치는 2차 정제과정을 통해 `69,864` 개의 단어로 이루어진 최종 데이터 셋을 구성하였습니다.
   
 ### 3.6. 전처리 과정 도식화
-전처리과정을 도식화한 결과는 다음과 같습니다.
+전처리과정을 도식화한 결과는 다음과 같습니다.  
 
 **데이터 정제 과정**
 ![_flow](https://user-images.githubusercontent.com/75797388/147895880-8e54d83d-3687-4543-8d5b-1ec5d66964fa.jpg)
@@ -148,15 +148,15 @@ data_tidylo %>%
   arrange(desc(n)) %>%
   ungroup() -> data_final_first
 ```
-청탁금지법 시기와 이해충돌방지법 시기에서 나타난 단어들의 빈도와 가중로그승산비를 구하였습니다. 시각화 결과는 다음과 같습니다. 
-**청탁금지법 시기 빈도분석 및 가중로그승산비분석 결과**
+청탁금지법 시기와 이해충돌방지법 시기에서 나타난 단어들의 빈도와 가중로그승산비를 구하였습니다. 시각화 결과는 다음과 같습니다.   
+**청탁금지법 시기 빈도분석 및 가중로그승산비분석 결과**  
 ![4 김영란법_빈도분석](https://user-images.githubusercontent.com/75797388/147895719-3359ab41-3fdd-49b4-8015-a204961ea34f.jpeg)
 ![6 가중로그승산비분석_김영란법](https://user-images.githubusercontent.com/75797388/147895722-ea815911-b626-4803-a868-eabe22447ab3.jpeg)
-  
-**이해충돌 방지법 시기 빈도분석 및 가중로그승산비분석 결과**
+    
+**이해충돌 방지법 시기 빈도분석 및 가중로그승산비분석 결과**  
 ![5 이해충돌방지법_빈도분석](https://user-images.githubusercontent.com/75797388/147895720-b9a72397-df0c-476c-9720-3717fa63af52.jpeg)
 ![7 가중로그승산비분석_이해충돌](https://user-images.githubusercontent.com/75797388/147895729-3c682a19-15f6-42ee-9a26-46790f3fd9f9.jpeg)
-  
+    
 ### 4.1.1. LDA 분석(토픽모델링)
 ```{r}
 data_final %>% 
@@ -249,12 +249,12 @@ data_gamma %>%
   ungroup() -> data_gamma_visualization
 ```
 시기별 누적 토픽수를 연도별로 계산하였습니다. 시각화한 결과는 아래와 같습니다.
-**토픽모델링 결과**
-![10 토픽모델링](https://user-images.githubusercontent.com/75797388/147895695-bde893d9-a463-4228-a74e-d63bf88d4d88.jpeg)
-**시기별 토픽별 적재 확률**
-![9 시기별토픽](https://user-images.githubusercontent.com/75797388/147895700-2c14ab81-06cd-44d2-9a13-69b379fd085a.jpeg)
-**시기별 토픽별 비중**
-![ratio](https://user-images.githubusercontent.com/75797388/147895703-70020068-ed64-4a83-a89c-08599584230d.jpeg)
+**토픽모델링 결과**   
+![10 토픽모델링](https://user-images.githubusercontent.com/75797388/147895695-bde893d9-a463-4228-a74e-d63bf88d4d88.jpeg)   
+**시기별 토픽별 적재 확률**   
+![9 시기별토픽](https://user-images.githubusercontent.com/75797388/147895700-2c14ab81-06cd-44d2-9a13-69b379fd085a.jpeg)   
+**시기별 토픽별 비중**   
+![ratio](https://user-images.githubusercontent.com/75797388/147895703-70020068-ed64-4a83-a89c-08599584230d.jpeg)   
 
 
 
@@ -309,10 +309,10 @@ data_pairs_graph_first %>%
 data_network_first_시각화
 ```
 행위자 네트워크 분석을 위해 네트워크 행위자를 `actor` 변수로 구분하여 네트워크 분석을 위한 별도의 데이터 셋을 구성하였습니다.  네트워크 분석을 위해 `ggragh` 등의 패키지를 활용하였습니다. 이를 시각화한 결과는 다음과 같습니다.  
-**청탁금지법 시기**
-![first_network](https://user-images.githubusercontent.com/75797388/147895668-9fc0f577-ee13-4cdd-a693-a35f4985497f.jpeg)
-**이해충돌방지법 시기**
-![second_network](https://user-images.githubusercontent.com/75797388/147895663-301ca65b-d14f-4813-8a8e-18b1449688ca.jpeg)
+**청탁금지법 시기**   
+![first_network](https://user-images.githubusercontent.com/75797388/147895668-9fc0f577-ee13-4cdd-a693-a35f4985497f.jpeg)   
+**이해충돌방지법 시기**   
+![second_network](https://user-images.githubusercontent.com/75797388/147895663-301ca65b-d14f-4813-8a8e-18b1449688ca.jpeg)   
 
 ### 5. 분석결과 해석
 논문 참조
