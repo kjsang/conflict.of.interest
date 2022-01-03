@@ -248,7 +248,7 @@ data_gamma %>%
   summarise(sum = sum(gamma)) %>%
   ungroup() -> data_gamma_visualization
 ```
-시기별 누적 토픽수를 연도별로 계산하였습니다. 시각화한 결과는 아래와 같습니다.
+시기별 누적 토픽수를 연도별로 계산하였습니다. 시각화한 결과는 아래와 같습니다.   
 **토픽모델링 결과**   
 ![10 토픽모델링](https://user-images.githubusercontent.com/75797388/147895695-bde893d9-a463-4228-a74e-d63bf88d4d88.jpeg)   
 **시기별 토픽별 적재 확률**   
