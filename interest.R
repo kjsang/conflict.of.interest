@@ -9,11 +9,11 @@ pacman::p_load(
   tidylo, rvest,
   tm, furrr, topicmodels,
   ggpmisc, # 시계열 시각화
-  ggraph, widyr, tidygraph
+  ggraph, # 네트워크 분석
+  widyr, # 단어쌍 
+  tidygraph
 )
-
 citation("rvest")
-
 
 RStudio.Version() # R Studio 버전 확인
 useNIADic() # 사전 불러오기: NIAdic 사용
