@@ -315,7 +315,7 @@ data_network_first_시각화
 ![second_network](https://user-images.githubusercontent.com/75797388/147895663-301ca65b-d14f-4813-8a8e-18b1449688ca.jpeg)   
 
 ### 5. 분석결과 해석
-[논문 참조](hufs.dcollection.net//srch/srchDetail/200000596641)
+[논문 참조](https://hufs.dcollection.net//srch/srchDetail/200000596641)
 
 ### 6. 감사의 말
 
