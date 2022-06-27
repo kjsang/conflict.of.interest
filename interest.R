@@ -512,21 +512,22 @@ topics %>%
   future_map(
     LDA, x = data_dtm, control = list(seed = 486)
     ) -> data_lda
+# devtools::install_github("nikita-moor/ldatuning")
 
-# 5.6.2. 엘보우 생성 ---------------------------------------
+#### 5.6.2. 토픽 수 결정
+# devtools::install_github("nikita-moor/ldatuning")
+citation("ldatuning")
+result <- ldatuning::FindTopicsNumber(
+  data_dtm,
+  topics = seq(from = 2, to = 20, by = 1),
+  metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"),
+  method = "Gibbs",
+  control = list(seed = 486),
+  mc.cores = 2L,
+  verbose = TRUE
+)
+ldatuning::FindTopicsNumber_plot(result)
 
-tibble(
-  k = topics,
-  perplex = map_dbl(data_lda, perplexity)
-) -> data_lda_prep
-
-data_lda_prep %>% 
-  ggplot(mapping = aes(x = k, 
-                       y = perplex)) +
-  geom_point() +
-  geom_line() +
-  ggplot2::geom_vline(xintercept = 9, size = 1, color = 'red', alpha = 0.7, linetype = 2) -> data_lda_엘보우
-data_lda_엘보우
 
 # 5.6.3. 토픽모델링: 토픽 수 9개 ------------------------------
 
